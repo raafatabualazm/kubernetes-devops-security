@@ -18,6 +18,13 @@ pipeline{
                     jacoco execPattern: 'target/jacoco.exec'
                 }
             }
+         }
+
+         stage("Push to Docker") {
+            steps {
+                sh 'docker build -t docker-registry:5000/java-app:latest .'
+                sh 'docker push docker-registry:5000/java-app:latest'
+            }
          }   
     }
 }
