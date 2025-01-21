@@ -25,6 +25,14 @@ pipeline{
                 sh 'docker build -t docker-registry:5000/java-app:latest .'
                 sh 'docker push docker-registry:5000/java-app:latest'
             }
+         }
+
+        stage("Deploy to Kubernetes") {
+            steps {
+                withKubeConfig([credentialsId: 'kubeconfig', serverUrl: 'https://kubernetes.default.svc.cluster.local']) {
+                    sh 'kubectl apply -f k8s/deployment.yaml'
+                }
+            }
          }   
     }
 }
