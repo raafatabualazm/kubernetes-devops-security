@@ -19,7 +19,8 @@ pipeline{
                 }
             }
          }
-        stage("Perform Mutuation Testing"){
+
+         stage("Perform Mutuation Testing"){
             steps{
                 sh '''
                     mvn org.pitest:pitest-maven:mutationCoverage
@@ -28,10 +29,32 @@ pipeline{
 
             post {
                 always {
-                    junit 'target/pit-reports/*.xml'
+                    junit '**/target/pit-reports/**/mutations.xml'
                 }
             }
          }
+
+         stage("Code Quality Analysis"){
+            
+            steps{
+                withSonarQubeEnv('sonarqube') {
+                sh '''
+                    mvn sonar:sonar -Dsonar.projectKey=devsecops-numeric-application -Dsonar.host.url=https://30012-port-imzqtskcwprqknew.labs.kodekloud.com/
+                '''
+            }
+                timeout(time: 2, unit: 'MINUTES') {
+                    script {
+                        
+                        waitForQualityGate abortPipeline: true
+                        
+                    }
+                    
+                }
+            
+            }
+
+         }
+
          stage("Push to Docker") {
             steps {
                 sh 'docker build -t docker-registry:5000/java-app:latest .'
@@ -39,7 +62,7 @@ pipeline{
             }
          }
 
-        stage("Deploy to Kubernetes") {
+         stage("Deploy to Kubernetes") {
             steps {
                 withKubeConfig([credentialsId: 'kubeconfig', serverUrl: 'https://kubernetes.default.svc.cluster.local']) {
                     sh 'kubectl apply -f k8s/deployment.yaml'
