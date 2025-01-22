@@ -19,7 +19,19 @@ pipeline{
                 }
             }
          }
+        stage("Perform Mutuation Testing"){
+            steps{
+                sh '''
+                    mvn org.pitest:pitest-maven:mutationCoverage
+                '''
+            }
 
+            post {
+                always {
+                    junit 'target/pit-reports/*.xml'
+                }
+            }
+         }
          stage("Push to Docker") {
             steps {
                 sh 'docker build -t docker-registry:5000/java-app:latest .'
