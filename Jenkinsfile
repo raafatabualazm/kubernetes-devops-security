@@ -55,6 +55,17 @@ pipeline{
 
          }
 
+        stage("Maven Dependency Check"){
+            steps{
+                sh "mvn org.owasp:dependency-check-maven:check"
+            }
+            post {
+                always {
+                    dependencyCheckPublisher pattern: 'target/dependency-check-report.xml'
+                }
+            }
+         }  
+
          stage("Push to Docker") {
             steps {
                 sh 'docker build -t docker-registry:5000/java-app:latest .'
