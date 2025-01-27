@@ -55,7 +55,7 @@ pipeline{
 
          }
 
-        stage("Maven Dependency Check"){
+         stage("Maven Dependency Check"){
             steps{
                 sh "mvn org.owasp:dependency-check-maven:check"
             }
@@ -65,6 +65,31 @@ pipeline{
                 }
             }
          }  
+
+         stage("Docker image scan with Trivy"){
+            steps{
+                sh '''
+                    trivy --exit-code 0 --severity HIGH --no-progress openjdk:8-jdk-alpine
+                    trivy --exit-code 1 --severity CRITICAL --no-progress openjdk:8-jdk-alpine
+                '''
+            }
+         }
+
+         stage("Conftest scan Dockerfile"){
+            steps{
+                sh '''
+                    conftest test --policy opa-docker-security.rego Dockerfile
+                '''
+            }
+         }
+
+         stage("Conftest scan Kubernetes"){
+            steps{
+                sh '''
+                    conftest test --policy opa-k8s-security.rego Dockerfile
+                '''
+            }
+         }
 
          stage("Push to Docker") {
             steps {
