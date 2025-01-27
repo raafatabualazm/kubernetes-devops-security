@@ -1,5 +1,15 @@
 pipeline{
     agent any
+
+    environment {
+    deploymentName = "devsecops"
+    containerName = "devsecops-container"
+    serviceName = "devsecops-svc"
+    imageName = "docker-registry:5000/java-app:latest"
+    applicationURL = "http://controlplane:30010"
+    applicationURI = "/increment/99"
+        }
+
     stages{
         stage("Build Artifact - Maven"){
             steps{
@@ -91,6 +101,8 @@ pipeline{
             }
          }
 
+
+
          stage("Push to Docker") {
             steps {
                 sh 'docker build -t docker-registry:5000/java-app:latest .'
@@ -104,6 +116,20 @@ pipeline{
                     sh 'kubectl apply -f k8s/deployment.yaml'
                 }
             }
-         }   
+         }
+
+                  stage('Integration Tests - DEV') {
+            steps {
+                script {
+                    try {
+                        sh "bash integration-test.sh"
+                        }
+                    catch (e) {
+                        sh "kubectl -n default rollout undo deploy ${deploymentName}"
+                    throw e
+                                }
+                        }
+                    }
+        }   
     }
 }
