@@ -6,7 +6,7 @@ pipeline{
     containerName = "devsecops-container"
     serviceName = "devsecops-svc"
     imageName = "docker-registry:5000/java-app:latest"
-    applicationURL = "http://controlplane:30010"
+    applicationURL = "http://controlplane"
     applicationURI = "/increment/99"
         }
 
@@ -118,7 +118,7 @@ pipeline{
             }
          }
 
-                  stage('Integration Tests - DEV') {
+         stage('Integration Tests - DEV') {
             steps {
                 script {
                     try {
